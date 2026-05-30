@@ -1,24 +1,110 @@
-import React from "react";
-import {Typography} from "@mui/material";
-
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Typography,
+  Box,
+  Button,
+  Divider,
+  CircularProgress,
+} from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
+import { AppContext } from "../../App";
+import fetchModel from "../../lib/fetchModelData";
 import "./styles.css";
-import {useParams} from "react-router-dom";
 
 /**
- * Define UserDetail, a React component of Project 4.
+ * UserDetail – hiển thị thông tin chi tiết của một user.
+ * Dùng fetchModel để lấy data từ backend API.
  */
 function UserDetail() {
-    const user = useParams();
+  const { userId } = useParams();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const { setTopBarTitle } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setLoading(true);
+    fetchModel(`/api/user/${userId}`)
+      .then((data) => {
+        setUser(data);
+        setTopBarTitle(`${data.first_name} ${data.last_name}`);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [userId, setTopBarTitle]);
+
+  if (loading) {
     return (
-        <>
-          <Typography variant="body1">
-            This should be the UserDetail view of the PhotoShare app. Since it is
-            invoked from React Router the params from the route will be in property match.
-            So this should show details of user: {user.userId}.
-            You can fetch the model for the user from models.userModel.
-          </Typography>
-        </>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+        <CircularProgress />
+      </Box>
     );
+  }
+
+  if (error) {
+    return (
+      <Typography variant="body2" color="error" sx={{ p: 2 }}>
+        Error: {error}
+      </Typography>
+    );
+  }
+
+  if (!user) {
+    return <Typography variant="body1" sx={{ p: 2 }}>User not found.</Typography>;
+  }
+
+  return (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h5" gutterBottom fontWeight="bold">
+        {user.first_name} {user.last_name}
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        {user.location && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Location
+            </Typography>
+            <Typography variant="body1">{user.location}</Typography>
+          </Box>
+        )}
+
+        {user.occupation && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Occupation
+            </Typography>
+            <Typography variant="body1">{user.occupation}</Typography>
+          </Box>
+        )}
+
+        {user.description && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Description
+            </Typography>
+            <Typography variant="body1">{user.description}</Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Box sx={{ mt: 3 }}>
+        <Button
+          id={`view-photos-btn-${userId}`}
+          variant="contained"
+          color="primary"
+          onClick={() => navigate(`/photos/${userId}`)}
+        >
+          View Photos
+        </Button>
+      </Box>
+    </Box>
+  );
 }
 
 export default UserDetail;
