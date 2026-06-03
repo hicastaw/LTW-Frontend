@@ -1,5 +1,5 @@
 import React, { useContext, useRef } from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Button, Box, Checkbox, FormControlLabel } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
 import { authFetch } from "../../lib/authFetch";
@@ -11,7 +11,7 @@ const BASE_URL = "http://localhost:8081";
  * TopBar – AppBar với auth state và context view.
  */
 function TopBar() {
-  const { topBarTitle, setTopBarTitle, loggedInUser, setLoggedInUser } = useContext(AppContext);
+  const { topBarTitle, setTopBarTitle, loggedInUser, setLoggedInUser, advancedFeatures, setAdvancedFeatures } = useContext(AppContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -82,6 +82,17 @@ function TopBar() {
         {loggedInUser ? (
           // Đã đăng nhập
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={advancedFeatures}
+                  onChange={(e) => setAdvancedFeatures(e.target.checked)}
+                  color="default"
+                />
+              }
+              label="Enable Advanced Features"
+              sx={{ color: "inherit", mr: 2 }}
+            />
             <Typography variant="body1" color="inherit">
               Hi {loggedInUser.first_name}
             </Typography>

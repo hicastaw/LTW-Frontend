@@ -9,6 +9,7 @@ import TopBar from "./components/TopBar";
 import UserDetail from "./components/UserDetail";
 import UserList from "./components/UserList";
 import UserPhotos from "./components/UserPhotos";
+import UserComments from "./components/UserComments";
 import Login from "./components/Login";
 import Register from "./components/Register";
 
@@ -18,6 +19,7 @@ export const AppContext = React.createContext(null);
 const App = () => {
   const [topBarTitle, setTopBarTitle] = useState("");
   const [loggedInUser, setLoggedInUser] = useState(null);
+  const [advancedFeatures, setAdvancedFeatures] = useState(false);
   // true trong khi đang verify token với server
   const [checking, setChecking] = useState(true);
 
@@ -59,7 +61,7 @@ const App = () => {
   }
 
   return (
-    <AppContext.Provider value={{ topBarTitle, setTopBarTitle, loggedInUser, setLoggedInUser }}>
+    <AppContext.Provider value={{ topBarTitle, setTopBarTitle, loggedInUser, setLoggedInUser, advancedFeatures, setAdvancedFeatures }}>
       <Router>
         <div>
           <Grid container spacing={2}>
@@ -81,6 +83,8 @@ const App = () => {
                     <Routes>
                       <Route path="/users/:userId" element={<UserDetail />} />
                       <Route path="/photos/:userId" element={<UserPhotos />} />
+                      <Route path="/photos/:userId/:photoId" element={<UserPhotos />} />
+                      <Route path="/comments/:userId" element={<UserComments />} />
                       <Route path="/users" element={<UserList />} />
                       <Route path="*" element={<Navigate to={`/users/${loggedInUser._id}`} replace />} />
                     </Routes>

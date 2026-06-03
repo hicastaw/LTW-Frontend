@@ -71,6 +71,53 @@ function UserList() {
                 <ListItemText
                   primary={`${user.first_name} ${user.last_name}`}
                 />
+                {user.photo_count !== undefined && (
+                  <Box
+                    title="Photos count"
+                    sx={{
+                      backgroundColor: "green",
+                      color: "white",
+                      borderRadius: "50%",
+                      width: 24,
+                      height: 24,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.75rem",
+                      fontWeight: "bold",
+                      mr: 1,
+                    }}
+                  >
+                    {user.photo_count}
+                  </Box>
+                )}
+                {user.comment_count !== undefined && (
+                  <Box
+                    title="Comments count (Click to view comments)"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/comments/${user._id}`);
+                    }}
+                    sx={{
+                      backgroundColor: "red",
+                      color: "white",
+                      borderRadius: "50%",
+                      width: 24,
+                      height: 24,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.75rem",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      "&:hover": {
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
+                    {user.comment_count}
+                  </Box>
+                )}
               </ListItemButton>
             </ListItem>
             <Divider />

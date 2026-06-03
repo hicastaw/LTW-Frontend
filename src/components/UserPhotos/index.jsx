@@ -10,7 +10,6 @@ import {
   TextField,
   Button,
   CircularProgress,
-  Alert,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
@@ -34,9 +33,10 @@ function formatDate(dateStr) {
 
 /**
  * UserPhotos – hiển thị tất cả ảnh của user kèm comments và form thêm comment.
+ * Hỗ trợ Stepper view nếu bật Advanced Features.
  */
 function UserPhotos() {
-  const { userId } = useParams();
+  const { userId, photoId } = useParams();
   const [photos, setPhotos] = useState([]);
   const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ function UserPhotos() {
   // Comment input state: { [photoId]: string }
   const [commentText, setCommentText] = useState({});
   const [commentError, setCommentError] = useState({});
-  const { setTopBarTitle } = useContext(AppContext);
+  const { setTopBarTitle, advancedFeatures } = useContext(AppContext);
   const navigate = useNavigate();
 
   const loadPhotos = () => {
@@ -71,34 +71,34 @@ function UserPhotos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const handleCommentChange = (photoId, value) => {
-    setCommentText((prev) => ({ ...prev, [photoId]: value }));
-    setCommentError((prev) => ({ ...prev, [photoId]: "" }));
+  const handleCommentChange = (id, value) => {
+    setCommentText((prev) => ({ ...prev, [id]: value }));
+    setCommentError((prev) => ({ ...prev, [id]: "" }));
   };
 
-  const handleAddComment = async (photoId) => {
-    const comment = (commentText[photoId] || "").trim();
+  const handleAddComment = async (id) => {
+    const comment = (commentText[id] || "").trim();
     if (!comment) {
-      setCommentError((prev) => ({ ...prev, [photoId]: "Comment cannot be empty." }));
+      setCommentError((prev) => ({ ...prev, [id]: "Comment cannot be empty." }));
       return;
     }
 
     try {
-      const res = await authFetch(`/api/photo/commentsOfPhoto/${photoId}`, {
+      const res = await authFetch(`/api/photo/commentsOfPhoto/${id}`, {
         method: "POST",
         body: JSON.stringify({ comment }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setCommentError((prev) => ({ ...prev, [photoId]: data.error || "Error adding comment." }));
+        setCommentError((prev) => ({ ...prev, [id]: data.error || "Error adding comment." }));
         return;
       }
 
-      // Thêm comment mới vào state ngay lập tức (không cần reload)
+      // Thêm comment mới vào state
       setPhotos((prevPhotos) =>
         prevPhotos.map((photo) => {
-          if (String(photo._id) === String(photoId)) {
+          if (String(photo._id) === String(id)) {
             return {
               ...photo,
               comments: [...(photo.comments || []), data],
@@ -108,10 +108,24 @@ function UserPhotos() {
         })
       );
 
-      // Xóa nội dung input
-      setCommentText((prev) => ({ ...prev, [photoId]: "" }));
+      setCommentText((prev) => ({ ...prev, [id]: "" }));
     } catch (err) {
-      setCommentError((prev) => ({ ...prev, [photoId]: "Network error." }));
+      setCommentError((prev) => ({ ...prev, [id]: "Network error." }));
+    }
+  };
+
+  const handlePrev = () => {
+    const currentIndex = photos.findIndex(p => String(p._id) === String(photoId));
+    if (currentIndex > 0) {
+      navigate(`/photos/${userId}/${photos[currentIndex - 1]._id}`);
+    }
+  };
+
+  const handleNext = () => {
+    let currentIndex = photos.findIndex(p => String(p._id) === String(photoId));
+    if (currentIndex === -1) currentIndex = 0;
+    if (currentIndex < photos.length - 1) {
+      navigate(`/photos/${userId}/${photos[currentIndex + 1]._id}`);
     }
   };
 
@@ -142,13 +156,45 @@ function UserPhotos() {
     );
   }
 
+  let displayedPhotos = photos;
+  let currentIndex = 0;
+
+  if (advancedFeatures) {
+    if (photoId) {
+      currentIndex = photos.findIndex((p) => String(p._id) === String(photoId));
+      if (currentIndex === -1) currentIndex = 0;
+    }
+    displayedPhotos = [photos[currentIndex]];
+  }
+
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h5" gutterBottom fontWeight="bold">
-        Photos of {userName}
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Typography variant="h5" fontWeight="bold">
+          Photos of {userName}
+        </Typography>
+        
+        {advancedFeatures && photos.length > 0 && (
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button 
+              variant="outlined" 
+              onClick={handlePrev} 
+              disabled={currentIndex === 0}
+            >
+              Previous
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={handleNext} 
+              disabled={currentIndex === photos.length - 1}
+            >
+              Next
+            </Button>
+          </Box>
+        )}
+      </Box>
 
-      {photos.map((photo) => (
+      {displayedPhotos.map((photo) => (
         <Card key={photo._id} sx={{ mb: 4, boxShadow: 3 }} id={`photo-card-${photo._id}`}>
           <CardMedia
             component="img"
