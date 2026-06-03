@@ -13,8 +13,7 @@ import {
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import fetchModel from "../../lib/fetchModelData";
-import { authFetch, BASE_URL } from "../../lib/authFetch";
+import fetchModel, { authFetch, BASE_URL } from "../../lib/fetchModelData";
 import "./styles.css";
 
 /**
@@ -39,36 +38,49 @@ function UserPhotos() {
   const { userId, photoId } = useParams();
   const [photos, setPhotos] = useState([]);
   const [userName, setUserName] = useState("");
-  const [loading, setLoading] = useState(true);
+  
+  const [userLoading, setUserLoading] = useState(true);
+  const [photosLoading, setPhotosLoading] = useState(true);
   const [error, setError] = useState("");
+  
   // Comment input state: { [photoId]: string }
   const [commentText, setCommentText] = useState({});
   const [commentError, setCommentError] = useState({});
   const { setTopBarTitle, advancedFeatures } = useContext(AppContext);
   const navigate = useNavigate();
 
-  const loadPhotos = () => {
-    setLoading(true);
-    Promise.all([
-      fetchModel(`/api/user/${userId}`),
-      fetchModel(`/api/photo/photosOfUser/${userId}`),
-    ])
-      .then(([user, photoData]) => {
+  // Luồng 1: Chỉ lo lấy thông tin User
+  useEffect(() => {
+    const fetchUser = async () => {
+      setUserLoading(true);
+      try {
+        const user = await fetchModel(`/api/user/${userId}`);
         const name = `${user.first_name} ${user.last_name}`;
         setUserName(name);
         setTopBarTitle(`Photos of ${name}`);
-        setPhotos(photoData || []);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err.message);
-        setLoading(false);
-      });
-  };
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    fetchUser();
+  }, [userId, setTopBarTitle]);
 
+  // Luồng 2: Chỉ lo lấy thông tin Photos
   useEffect(() => {
-    loadPhotos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const fetchPhotos = async () => {
+      setPhotosLoading(true);
+      try {
+        const photoData = await fetchModel(`/api/photo/photosOfUser/${userId}`);
+        setPhotos(photoData || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setPhotosLoading(false);
+      }
+    };
+    fetchPhotos();
   }, [userId]);
 
   const handleCommentChange = (id, value) => {
@@ -129,14 +141,6 @@ function UserPhotos() {
     }
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   if (error) {
     return (
       <Typography variant="body2" color="error" sx={{ p: 2 }}>
@@ -145,21 +149,10 @@ function UserPhotos() {
     );
   }
 
-  if (photos.length === 0) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h5" gutterBottom fontWeight="bold">
-          Photos of {userName}
-        </Typography>
-        <Typography variant="body1">No photos found for this user.</Typography>
-      </Box>
-    );
-  }
-
   let displayedPhotos = photos;
   let currentIndex = 0;
 
-  if (advancedFeatures) {
+  if (advancedFeatures && photos.length > 0) {
     if (photoId) {
       currentIndex = photos.findIndex((p) => String(p._id) === String(photoId));
       if (currentIndex === -1) currentIndex = 0;
@@ -169,131 +162,143 @@ function UserPhotos() {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5" fontWeight="bold">
-          Photos of {userName}
-        </Typography>
-        
-        {advancedFeatures && photos.length > 0 && (
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button 
-              variant="outlined" 
-              onClick={handlePrev} 
-              disabled={currentIndex === 0}
-            >
-              Previous
-            </Button>
-            <Button 
-              variant="outlined" 
-              onClick={handleNext} 
-              disabled={currentIndex === photos.length - 1}
-            >
-              Next
-            </Button>
-          </Box>
-        )}
-      </Box>
-
-      {displayedPhotos.map((photo) => (
-        <Card key={photo._id} sx={{ mb: 4, boxShadow: 3 }} id={`photo-card-${photo._id}`}>
-          <CardMedia
-            component="img"
-            image={`${BASE_URL}/images/${photo.file_name}`}
-            alt={photo.file_name}
-            sx={{ maxHeight: 400, objectFit: "contain", bgcolor: "#f5f5f5" }}
-          />
-          <CardContent>
-            <Typography variant="caption" color="text.secondary">
-              Uploaded: {formatDate(photo.date_time)}
-            </Typography>
-
-            <Divider sx={{ my: 2 }} />
-
-            {/* Comments */}
-            {photo.comments && photo.comments.length > 0 && (
-              <>
-                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                  Comments ({photo.comments.length})
-                </Typography>
-                {photo.comments.map((comment) => (
-                  <Box
-                    key={comment._id}
-                    sx={{
-                      mb: 2,
-                      pl: 2,
-                      borderLeft: "3px solid #1976d2",
-                      bgcolor: "#f9f9f9",
-                      borderRadius: 1,
-                      py: 1,
-                      pr: 1,
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                      {comment.user ? (
-                        <Link
-                          component="button"
-                          variant="subtitle2"
-                          fontWeight="bold"
-                          onClick={() => navigate(`/users/${comment.user._id}`)}
-                          sx={{ textDecoration: "none", cursor: "pointer" }}
-                        >
-                          {comment.user.first_name} {comment.user.last_name}
-                        </Link>
-                      ) : (
-                        <Typography variant="subtitle2" fontWeight="bold">
-                          Unknown User
-                        </Typography>
-                      )}
-                      <Typography variant="caption" color="text.secondary">
-                        – {formatDate(comment.date_time)}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2">{comment.comment}</Typography>
-                  </Box>
-                ))}
-              </>
-            )}
-
-            {(!photo.comments || photo.comments.length === 0) && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                No comments yet. Be the first!
-              </Typography>
-            )}
-
-            {/* Add Comment Form */}
-            <Box sx={{ mt: 2, display: "flex", gap: 1, alignItems: "flex-start" }}>
-              <TextField
-                id={`comment-input-${photo._id}`}
-                label="Add a comment..."
-                variant="outlined"
-                size="small"
-                fullWidth
-                multiline
-                maxRows={3}
-                value={commentText[photo._id] || ""}
-                onChange={(e) => handleCommentChange(photo._id, e.target.value)}
-                error={!!commentError[photo._id]}
-                helperText={commentError[photo._id]}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAddComment(photo._id);
-                  }
-                }}
-              />
-              <Button
-                id={`comment-submit-${photo._id}`}
-                variant="contained"
-                size="small"
-                onClick={() => handleAddComment(photo._id)}
-                sx={{ minWidth: 80, mt: 0.5 }}
+      {userLoading ? (
+        <CircularProgress size={24} sx={{ mb: 2 }} />
+      ) : (
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <Typography variant="h5" fontWeight="bold">
+            Photos of {userName}
+          </Typography>
+          
+          {advancedFeatures && photos.length > 0 && !photosLoading && (
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button 
+                variant="outlined" 
+                onClick={handlePrev} 
+                disabled={currentIndex === 0}
               >
-                Post
+                Previous
+              </Button>
+              <Button 
+                variant="outlined" 
+                onClick={handleNext} 
+                disabled={currentIndex === photos.length - 1}
+              >
+                Next
               </Button>
             </Box>
-          </CardContent>
-        </Card>
-      ))}
+          )}
+        </Box>
+      )}
+
+      {photosLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : photos.length === 0 ? (
+        <Typography variant="body1">No photos found for this user.</Typography>
+      ) : (
+        displayedPhotos.map((photo) => (
+          <Card key={photo._id} sx={{ mb: 4, boxShadow: 3 }} id={`photo-card-${photo._id}`}>
+            <CardMedia
+              component="img"
+              image={`${BASE_URL}/images/${photo.file_name}`}
+              alt={photo.file_name}
+              sx={{ maxHeight: 400, objectFit: "contain", bgcolor: "#f5f5f5" }}
+            />
+            <CardContent>
+              <Typography variant="caption" color="text.secondary">
+                Uploaded: {formatDate(photo.date_time)}
+              </Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Comments */}
+              {photo.comments && photo.comments.length > 0 && (
+                <>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Comments ({photo.comments.length})
+                  </Typography>
+                  {photo.comments.map((comment) => (
+                    <Box
+                      key={comment._id}
+                      sx={{
+                        mb: 2,
+                        pl: 2,
+                        borderLeft: "3px solid #1976d2",
+                        bgcolor: "#f9f9f9",
+                        borderRadius: 1,
+                        py: 1,
+                        pr: 1,
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                        {comment.user ? (
+                          <Link
+                            component="button"
+                            variant="subtitle2"
+                            fontWeight="bold"
+                            onClick={() => navigate(`/users/${comment.user._id}`)}
+                            sx={{ textDecoration: "none", cursor: "pointer" }}
+                          >
+                            {comment.user.first_name} {comment.user.last_name}
+                          </Link>
+                        ) : (
+                          <Typography variant="subtitle2" fontWeight="bold">
+                            Unknown User
+                          </Typography>
+                        )}
+                        <Typography variant="caption" color="text.secondary">
+                          – {formatDate(comment.date_time)}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2">{comment.comment}</Typography>
+                    </Box>
+                  ))}
+                </>
+              )}
+
+              {(!photo.comments || photo.comments.length === 0) && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  No comments yet. Be the first!
+                </Typography>
+              )}
+
+              {/* Add Comment Form */}
+              <Box sx={{ mt: 2, display: "flex", gap: 1, alignItems: "flex-start" }}>
+                <TextField
+                  id={`comment-input-${photo._id}`}
+                  label="Add a comment..."
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  multiline
+                  maxRows={3}
+                  value={commentText[photo._id] || ""}
+                  onChange={(e) => handleCommentChange(photo._id, e.target.value)}
+                  error={!!commentError[photo._id]}
+                  helperText={commentError[photo._id]}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddComment(photo._id);
+                    }
+                  }}
+                />
+                <Button
+                  id={`comment-submit-${photo._id}`}
+                  variant="contained"
+                  size="small"
+                  onClick={() => handleAddComment(photo._id)}
+                  sx={{ minWidth: 80, mt: 0.5 }}
+                >
+                  Post
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        ))
+      )}
     </Box>
   );
 }

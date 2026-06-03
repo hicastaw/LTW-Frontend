@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import { BASE_URL } from "../../lib/authFetch";
+import { BASE_URL } from "../../lib/fetchModelData";
 
 /**
  * Login – Trang đăng nhập độc lập.

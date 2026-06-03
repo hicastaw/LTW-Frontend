@@ -2,7 +2,7 @@ import React, { useContext, useRef } from "react";
 import { AppBar, Toolbar, Typography, Button, Box, Checkbox, FormControlLabel } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
-import { authFetch } from "../../lib/authFetch";
+import { authFetch } from "../../lib/fetchModelData";
 import "./styles.css";
 
 const BASE_URL = "http://localhost:8081";
@@ -69,7 +69,7 @@ function TopBar() {
       <Toolbar>
         {/* Tên app bên trái */}
         <Typography variant="h5" color="inherit" sx={{ flexGrow: 1 }}>
-          Photo Sharing App
+          Tran Trung Hieu
         </Typography>
 
         {/* Context bên phải */}

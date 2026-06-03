@@ -24,17 +24,19 @@ function UserDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLoading(true);
-    fetchModel(`/api/user/${userId}`)
-      .then((data) => {
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        const data = await fetchModel(`/api/user/${userId}`);
         setUser(data);
         setTopBarTitle(`${data.first_name} ${data.last_name}`);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchUser();
   }, [userId, setTopBarTitle]);
 
   if (loading) {

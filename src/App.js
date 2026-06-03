@@ -3,7 +3,7 @@ import './App.css';
 import React, { useState, useEffect } from "react";
 import { Grid, Paper, CircularProgress, Box } from "@mui/material";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
-import { authFetch } from "./lib/authFetch";
+import { authFetch } from "./lib/fetchModelData";
 
 import TopBar from "./components/TopBar";
 import UserDetail from "./components/UserDetail";
@@ -25,30 +25,32 @@ const App = () => {
 
   // Khi app khởi động: kiểm tra token còn hạn không
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setChecking(false);
-      return;
-    }
-    authFetch("/api/admin/me")
-      .then((res) => {
-        if (res.ok) return res.json();
-        // Token hết hạn hoặc không hợp lệ
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("authUser");
-        return null;
-      })
-      .then((user) => {
-        if (user) {
-          localStorage.setItem("authUser", JSON.stringify(user));
-          setLoggedInUser(user);
+    const checkToken = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setChecking(false);
+        return;
+      }
+      try {
+        const res = await authFetch("/api/admin/me");
+        if (res.ok) {
+          const user = await res.json();
+          if (user) {
+            localStorage.setItem("authUser", JSON.stringify(user));
+            setLoggedInUser(user);
+          }
+        } else {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("authUser");
         }
-      })
-      .catch(() => {
+      } catch {
         localStorage.removeItem("authToken");
         localStorage.removeItem("authUser");
-      })
-      .finally(() => setChecking(false));
+      } finally {
+        setChecking(false);
+      }
+    };
+    checkToken();
   }, []);
 
   // Hiển thị loading trong lúc verify token

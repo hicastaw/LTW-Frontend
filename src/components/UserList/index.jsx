@@ -26,16 +26,18 @@ function UserList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setTopBarTitle("Users");
-    fetchModel("/api/user/list")
-      .then((data) => {
+    const fetchUsers = async () => {
+      setTopBarTitle("Users");
+      try {
+        const data = await fetchModel("/api/user/list");
         setUsers(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchUsers();
   }, [setTopBarTitle]);
 
   if (loading) {
