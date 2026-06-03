@@ -16,9 +16,7 @@ import { AppContext } from "../../App";
 import fetchModel, { authFetch, BASE_URL } from "../../lib/fetchModelData";
 import "./styles.css";
 
-/**
- * Format date thành chuỗi đọc được.
- */
+// Format date
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   return date.toLocaleString("vi-VN", {
@@ -30,10 +28,7 @@ function formatDate(dateStr) {
   });
 }
 
-/**
- * UserPhotos – hiển thị tất cả ảnh của user kèm comments và form thêm comment.
- * Hỗ trợ Stepper view nếu bật Advanced Features.
- */
+// UserPhotos component
 function UserPhotos() {
   const { userId, photoId } = useParams();
   const [photos, setPhotos] = useState([]);

@@ -1,9 +1,6 @@
 export const BASE_URL = "http://localhost:8081";
 
-/**
- * Helper fetch có gắn JWT token từ localStorage.
- * Có thể dùng cho cả GET, POST, PUT, DELETE.
- */
+// Core fetch with JWT
 export async function authFetch(path, options = {}) {
   const token = localStorage.getItem("authToken");
   const fullUrl = path.startsWith("http") ? path : `${BASE_URL}${path}`;
@@ -28,9 +25,7 @@ export async function authFetch(path, options = {}) {
   });
 }
 
-/**
- * fetchModel - Dành riêng cho request GET và tự động parse JSON (kế thừa logic cũ của đồ án).
- */
+// GET fetch wrapper
 async function fetchModel(url) {
   const response = await authFetch(url);
 
