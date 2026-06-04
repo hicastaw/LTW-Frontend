@@ -1,4 +1,4 @@
-export const BASE_URL = "http://localhost:8081";
+export const BASE_URL = "https://tj4q68-8081.csb.app";
 
 // Core fetch with JWT
 export async function authFetch(path, options = {}) {
@@ -20,7 +20,6 @@ export async function authFetch(path, options = {}) {
 
   return fetch(fullUrl, {
     ...options,
-    credentials: "include", // gửi cookie session
     headers,
   });
 }
