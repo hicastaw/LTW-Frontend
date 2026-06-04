@@ -6,17 +6,14 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { authFetch } from "./lib/fetchModelData";
 import AppLayout from "./components/AppLayout";
 
-// Context để share thông tin về view hiện tại và auth state
 export const AppContext = React.createContext(null);
 
 const App = () => {
   const [topBarTitle, setTopBarTitle] = useState("");
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [advancedFeatures, setAdvancedFeatures] = useState(false);
-  // true trong khi đang verify token với server
   const [checking, setChecking] = useState(true);
 
-  // Khi app khởi động: kiểm tra token còn hạn không
   useEffect(() => {
     const checkToken = async () => {
       const token = localStorage.getItem("authToken");
@@ -46,7 +43,6 @@ const App = () => {
     checkToken();
   }, []);
 
-  // Hiển thị loading trong lúc verify token
   if (checking) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>

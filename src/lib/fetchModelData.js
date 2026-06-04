@@ -1,6 +1,5 @@
 export const BASE_URL = "https://tj4q68-8081.csb.app";
 
-// Core fetch with JWT
 export async function authFetch(path, options = {}) {
   const token = localStorage.getItem("authToken");
   const fullUrl = path.startsWith("http") ? path : `${BASE_URL}${path}`;
@@ -9,7 +8,6 @@ export async function authFetch(path, options = {}) {
     ...(options.headers || {}),
   };
 
-  // Chỉ thêm Content-Type nếu không phải FormData
   if (!(options.body instanceof FormData)) {
     headers["Content-Type"] = "application/json";
   }
@@ -24,7 +22,6 @@ export async function authFetch(path, options = {}) {
   });
 }
 
-// GET fetch wrapper
 async function fetchModel(url) {
   const response = await authFetch(url);
 

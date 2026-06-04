@@ -23,7 +23,6 @@ function AppLayout() {
         <div className="main-topbar-buffer" />
 
         {loggedInUser ? (
-          // Đã đăng nhập: layout chính
           <>
             <Grid item sm={3}>
               <Paper className="main-grid-item">
@@ -44,7 +43,6 @@ function AppLayout() {
             </Grid>
           </>
         ) : (
-          // Chưa đăng nhập: 2 trang riêng /login và /register
           <Grid item sm={12}>
             <Paper className="main-grid-item">
               <Routes>

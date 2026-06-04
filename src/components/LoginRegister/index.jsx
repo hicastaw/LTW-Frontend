@@ -18,12 +18,10 @@ const BASE_URL = "http://localhost:8081";
 function LoginRegister() {
   const { setLoggedInUser } = useContext(AppContext);
 
-  // Login state
   const [loginName, setLoginName] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  // Register state
   const [regForm, setRegForm] = useState({
     login_name: "",
     password: "",
@@ -37,7 +35,6 @@ function LoginRegister() {
   const [regError, setRegError] = useState("");
   const [regSuccess, setRegSuccess] = useState("");
 
-  // ───────── Login ─────────
   const handleLogin = async () => {
     setLoginError("");
     if (!loginName.trim()) {
@@ -62,7 +59,6 @@ function LoginRegister() {
     }
   };
 
-  // ───────── Register ─────────
   const handleRegChange = (e) => {
     setRegForm({ ...regForm, [e.target.name]: e.target.value });
   };

@@ -13,9 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../App";
 import { BASE_URL } from "../../lib/fetchModelData";
 
-/**
- * Login – Trang đăng nhập độc lập.
- */
+
+// Login – Trang đăng nhập độc lập.
+
 function Login() {
   const { setLoggedInUser } = useContext(AppContext);
   const navigate = useNavigate();
@@ -41,7 +41,6 @@ function Login() {
         setLoginError(data.error || "Đăng nhập thất bại.");
         return;
       }
-      // Lưu token và user vào localStorage
       localStorage.setItem("authToken", data.token);
       const userInfo = { _id: data._id, first_name: data.first_name, last_name: data.last_name, login_name: data.login_name };
       localStorage.setItem("authUser", JSON.stringify(userInfo));

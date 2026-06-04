@@ -7,15 +7,12 @@ import "./styles.css";
 
 const BASE_URL = "http://localhost:8081";
 
-/**
- * TopBar – AppBar với auth state và context view.
- */
+
 function TopBar() {
   const { topBarTitle, setTopBarTitle, loggedInUser, setLoggedInUser, advancedFeatures, setAdvancedFeatures } = useContext(AppContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // Logout: xóa token + user khỏi localStorage
   const handleLogout = async () => {
     try {
       await fetch(`${BASE_URL}/api/admin/logout`, { method: "POST" });
@@ -29,12 +26,10 @@ function TopBar() {
     navigate("/");
   };
 
-  // Trigger file input click
   const handleAddPhotoClick = () => {
     fileInputRef.current.click();
   };
 
-  // Upload photo
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -49,7 +44,6 @@ function TopBar() {
       });
 
       if (res.ok) {
-        // Navigate to current user's photos to see the new photo
         navigate(`/photos/${loggedInUser._id}`);
       } else {
         const err = await res.json();
@@ -60,7 +54,6 @@ function TopBar() {
       alert("Upload failed. Please try again.");
     }
 
-    // Reset file input
     e.target.value = "";
   };
 
@@ -80,7 +73,6 @@ function TopBar() {
         )}
 
         {loggedInUser ? (
-          // Đã đăng nhập
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <FormControlLabel
               control={
@@ -127,7 +119,6 @@ function TopBar() {
             </Button>
           </Box>
         ) : (
-          // Chưa đăng nhập
           <Typography variant="body1" color="inherit">
             Please Login
           </Typography>

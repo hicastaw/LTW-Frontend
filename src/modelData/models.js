@@ -51,7 +51,6 @@ const schemaInfo = {
   _id: "57231f1b30e4351f4e9f4bf6",
 };
 
-// Create init users.
 
 const im = {
   _id: "57231f1a30e4351f4e9f4bd7",
@@ -108,7 +107,6 @@ const jo = {
 
 const users = [im, er, pt, rk, al, jo];
 
-// Create initial photos.
 const photo1 = {
   _id: "57231f1a30e4351f4e9f4bdd",
   date_time: "2012-08-30 10:44:23",
@@ -197,7 +195,6 @@ const photos = [
   photo12,
 ];
 
-// Create initial comments.
 const comment1 = {
   _id: "57231f1a30e4351f4e9f4be9",
   date_time: "2012-09-02 14:01:00",
